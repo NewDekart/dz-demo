@@ -1,39 +1,173 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"errors"
+	"fmt"
+	"os"
+	"strconv"
+)
 
 const USD_2_RUB = 94
 const USD_2_EUR = 1.1
 const EUR_2_RUB = USD_2_RUB / USD_2_EUR
 
-func main() {
-	fmt.Println("Введите сумму в EUR:")
+type Currency string
 
-	eur_sum, err := getSum()
+const (
+	EUR Currency = "EUR"
+	RUB Currency = "RUB"
+	USD Currency = "USD"
+)
+
+func main() {
+	var step int
+	var dst, src Currency
+	var sum float64
+
+	for {
+		if step == 0 {
+			value, err := getCurrency("")
+
+			if err != nil {
+				fmt.Println(err)
+
+				continue
+			}
+
+			src = value
+
+			step++
+		}
+
+		if step == 1 {
+			value, err := getSum()
+
+			if err != nil {
+				fmt.Println(err)
+
+				continue
+			}
+
+			sum = value
+
+			step++
+		}
+
+		if step == 2 {
+			value, err := getCurrency(src)
+
+			if err != nil {
+				fmt.Println(err)
+
+				continue
+			}
+
+			dst = value
+
+			break
+		}
+	}
+
+	result, err := calculate(sum, src, dst)
 
 	if err != nil {
-		fmt.Println("Ошибка ввода")
+		fmt.Println(err)
 
 		return
 	}
 
-	calculate(eur_sum, "EUR", "RUB")
-
-	rub_sum := eur_sum * EUR_2_RUB
-
-	fmt.Printf("Сумма в RUB: %.2f\n", rub_sum)
+	fmt.Printf("Сумма в %s: %.2f\n", dst, result)
 }
 
-func calculate(value float64, src_currency string, dst_currency string) {}
+func calculate(value float64, src_currency Currency, dst_currency Currency) (float64, error) {
+	var rate float64
 
-func getSum() (float64, error) {
-	var eur_sum float64
-
-	_, err := fmt.Scan(&eur_sum)
-
-	if err != nil {
-		return eur_sum, err
+	if src_currency == RUB && dst_currency == USD {
+		rate = 1 / USD_2_RUB
 	}
 
-	return eur_sum, nil
+	if src_currency == RUB && dst_currency == EUR {
+		rate = 1 / EUR_2_RUB
+	}
+
+	if src_currency == USD && dst_currency == EUR {
+		rate = USD_2_EUR
+	}
+
+	if src_currency == USD && dst_currency == RUB {
+		rate = USD_2_RUB
+	}
+
+	if src_currency == EUR && dst_currency == RUB {
+		rate = EUR_2_RUB
+	}
+
+	if src_currency == EUR && dst_currency == USD {
+		rate = 1 / USD_2_EUR
+	}
+
+	return value * rate, nil
+}
+
+func getSum() (float64, error) {
+	fmt.Println("Введите сумму:")
+
+	input := bufio.NewScanner(os.Stdin)
+	input.Scan()
+	sum, err := strconv.ParseFloat(input.Text(), 64)
+
+	if err != nil {
+		return sum, errors.New("Неверный формат суммы")
+	}
+
+	if sum <= 0 {
+		return sum, errors.New("Сумма должна быть больше 0")
+	}
+
+	return sum, nil
+}
+
+func getCurrency(src Currency) (Currency, error) {
+	var currency_description string
+
+	if src == "" {
+		currency_description = "исходную"
+	} else {
+		currency_description = "желаемую"
+	}
+
+	allTips := []Currency{EUR, RUB, USD}
+
+	if src != "" {
+		newTips := []Currency{}
+
+		for _, value := range allTips {
+			if value != src {
+				newTips = append(newTips, value)
+			}
+		}
+
+		allTips = newTips
+	}
+
+	fmt.Printf("Введите %s валюту(%v):\n", currency_description, allTips)
+
+	var result Currency
+
+	_, err := fmt.Scan(&result)
+
+	if err != nil {
+		return "", err
+	}
+
+	if result != EUR && result != RUB && result != USD {
+		return "", errors.New("Неизвестная валюта")
+	}
+
+	if result == src {
+		return "", errors.New("Исходная и конечная валюты совпадают")
+	}
+
+	return result, nil
 }
