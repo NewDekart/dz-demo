@@ -8,6 +8,8 @@ import (
 	"strconv"
 )
 
+const FORMAT_COURSE_STRING = "%s_%s"
+
 const USD_2_RUB = 94
 const USD_2_EUR = 1.1
 const EUR_2_RUB = USD_2_RUB / USD_2_EUR
@@ -83,28 +85,21 @@ func main() {
 func calculate(value float64, src_currency Currency, dst_currency Currency) (float64, error) {
 	var rate float64
 
-	if src_currency == RUB && dst_currency == USD {
-		rate = 1 / USD_2_RUB
+	m := map[string]float64{
+		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, USD): 1 / USD_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, EUR): 1 / EUR_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, USD, EUR): USD_2_EUR,
+		fmt.Sprintf(FORMAT_COURSE_STRING, USD, RUB): USD_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, RUB): EUR_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, USD): 1 / USD_2_EUR,
 	}
 
-	if src_currency == RUB && dst_currency == EUR {
-		rate = 1 / EUR_2_RUB
-	}
+	course := fmt.Sprintf(FORMAT_COURSE_STRING, src_currency, dst_currency)
 
-	if src_currency == USD && dst_currency == EUR {
-		rate = USD_2_EUR
-	}
+	rate, ok := m[course]
 
-	if src_currency == USD && dst_currency == RUB {
-		rate = USD_2_RUB
-	}
-
-	if src_currency == EUR && dst_currency == RUB {
-		rate = EUR_2_RUB
-	}
-
-	if src_currency == EUR && dst_currency == USD {
-		rate = 1 / USD_2_EUR
+	if !ok {
+		return rate, errors.New("Отствуют данные о курсе валют")
 	}
 
 	return value * rate, nil
