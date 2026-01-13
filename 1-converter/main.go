@@ -27,6 +27,15 @@ func main() {
 	var dst, src Currency
 	var sum float64
 
+	m := map[string]float64{
+		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, USD): 1 / USD_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, EUR): 1 / EUR_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, USD, EUR): USD_2_EUR,
+		fmt.Sprintf(FORMAT_COURSE_STRING, USD, RUB): USD_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, RUB): EUR_2_RUB,
+		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, USD): 1 / USD_2_EUR,
+	}
+
 	for {
 		if step == 0 {
 			value, err := getCurrency("")
@@ -71,7 +80,7 @@ func main() {
 		}
 	}
 
-	result, err := calculate(sum, src, dst)
+	result, err := calculate(sum, src, dst, &m)
 
 	if err != nil {
 		fmt.Println(err)
@@ -82,21 +91,12 @@ func main() {
 	fmt.Printf("Сумма в %s: %.2f\n", dst, result)
 }
 
-func calculate(value float64, src_currency Currency, dst_currency Currency) (float64, error) {
+func calculate(value float64, src_currency Currency, dst_currency Currency, m *map[string]float64) (float64, error) {
 	var rate float64
-
-	m := map[string]float64{
-		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, USD): 1 / USD_2_RUB,
-		fmt.Sprintf(FORMAT_COURSE_STRING, RUB, EUR): 1 / EUR_2_RUB,
-		fmt.Sprintf(FORMAT_COURSE_STRING, USD, EUR): USD_2_EUR,
-		fmt.Sprintf(FORMAT_COURSE_STRING, USD, RUB): USD_2_RUB,
-		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, RUB): EUR_2_RUB,
-		fmt.Sprintf(FORMAT_COURSE_STRING, EUR, USD): 1 / USD_2_EUR,
-	}
 
 	course := fmt.Sprintf(FORMAT_COURSE_STRING, src_currency, dst_currency)
 
-	rate, ok := m[course]
+	rate, ok := (*m)[course]
 
 	if !ok {
 		return rate, errors.New("Отствуют данные о курсе валют")
