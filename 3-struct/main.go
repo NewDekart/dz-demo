@@ -5,7 +5,7 @@ import "time"
 type Bin struct {
 	id        string
 	private   bool
-	createAdt time.Time
+	createdAt time.Time
 	name      string
 }
 
@@ -15,7 +15,7 @@ func NewBin(id string, private bool, name string) Bin {
 	return Bin{
 		id:        id,
 		private:   private,
-		createAdt: time.Now(),
+		createdAt: time.Now(),
 		name:      name,
 	}
 }
