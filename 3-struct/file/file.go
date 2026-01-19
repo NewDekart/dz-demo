@@ -13,7 +13,7 @@ func ReadFile(filename string) ([]byte, error) {
 		return nil, errors.New("Ошибка при получении информации о файле")
 	}
 
-	if strings.HasSuffix(fileInfo.Name(), ".json") {
+	if !strings.HasSuffix(fileInfo.Name(), ".json") {
 		return nil, errors.New("Файл должен быть в формате JSON")
 	}
 
