@@ -12,11 +12,11 @@ func main() {
 
 	binList = append(binList, bin)
 
-	storage := storage.JsonStorage{}
+	var s storage.Storage = &storage.JsonStorage{}
 
-	storage.Save(binList)
+	s.Save(binList)
 
-	result, _ := storage.Get()
+	result, _ := s.Get()
 
 	fmt.Println(result)
 }
